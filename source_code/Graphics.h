@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <SFML/Graphics.hpp>
 #include "Basics.h"
 #include <fstream>
@@ -7,7 +7,7 @@
 
 namespace gr {
 
-	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
+	// РљР»Р°СЃСЃ РїРѕС…РѕР¶РёР№ РЅР° sf::Rect<double>, РЅРѕ С‡СѓС‚СЊ Р±РѕР»РµРµ РјРЅРµ СѓРґРѕР±РЅС‹Р№
 	class Rect {
 	public:
 		sf::Vector2d pos, size;
@@ -18,7 +18,7 @@ namespace gr {
 
 		Rect(sf::Vector2d _pos, sf::Vector2d _size);
 
-		bool intersects(const Rect& rect); // Проверка пересечения в другим прямоугольником 
+		bool intersects(const Rect& rect); // РџСЂРѕРІРµСЂРєР° РїРµСЂРµСЃРµС‡РµРЅРёСЏ РІ РґСЂСѓРіРёРј РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєРѕРј 
 	};
 
 	class Camera : public Rect {
@@ -68,28 +68,28 @@ namespace gr {
 
 		Camera cam;
 
-		std::deque<Drawable*> objects; // Все обьекты на карте
-		std::deque<Drawable*> render_queue; // Очередь отрисовки
+		std::deque<Drawable*> objects; // Р’СЃРµ РѕР±СЊРµРєС‚С‹ РЅР° РєР°СЂС‚Рµ
+		std::deque<Drawable*> render_queue; // РћС‡РµСЂРµРґСЊ РѕС‚СЂРёСЃРѕРІРєРё
 
 		sf::Vector2u render_res, output_res;
 
-		sf::Glsl::Mat3 color_correction; // !!! Вынести все постэффекты в отдельный класс !!!!
+		sf::Glsl::Mat3 color_correction; // !!! Р’С‹РЅРµСЃС‚Рё РІСЃРµ РїРѕСЃС‚СЌС„С„РµРєС‚С‹ РІ РѕС‚РґРµР»СЊРЅС‹Р№ РєР»Р°СЃСЃ !!!!
 
-		sf::RenderTexture rtexture1, rtexture2; // Теперь будет не много рендер-текстур, а 2, которые поочередно меняем друг с другом
+		sf::RenderTexture rtexture1, rtexture2; // РўРµРїРµСЂСЊ Р±СѓРґРµС‚ РЅРµ РјРЅРѕРіРѕ СЂРµРЅРґРµСЂ-С‚РµРєСЃС‚СѓСЂ, Р° 2, РєРѕС‚РѕСЂС‹Рµ РїРѕРѕС‡РµСЂРµРґРЅРѕ РјРµРЅСЏРµРј РґСЂСѓРі СЃ РґСЂСѓРіРѕРј
 
 		void(*glTextureBarrier);
 
 		sf::RenderTexture lightmap, effectbuffer;
 		sf::Shader lightmapShader, combineShader, posteffectShader, heightShader;
 
-		void createRenderQueue(); // Создать очередь отрисовки = найти все обьекты в кадре
+		void createRenderQueue(); // РЎРѕР·РґР°С‚СЊ РѕС‡РµСЂРµРґСЊ РѕС‚СЂРёСЃРѕРІРєРё = РЅР°Р№С‚Рё РІСЃРµ РѕР±СЊРµРєС‚С‹ РІ РєР°РґСЂРµ
 
-		void sortRenderQueue(); // Отсортировать все обьекты в кадре = diffuse, height, effect по layer, свет в конец
-		// Всего обьектов в кадре даже если 1000 будет, сортировка будет ультра быстрой, и можно все типы обьектов в кучу пихать
+		void sortRenderQueue(); // РћС‚СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РІСЃРµ РѕР±СЊРµРєС‚С‹ РІ РєР°РґСЂРµ = diffuse, height, effect РїРѕ layer, СЃРІРµС‚ РІ РєРѕРЅРµС†
+		// Р’СЃРµРіРѕ РѕР±СЊРµРєС‚РѕРІ РІ РєР°РґСЂРµ РґР°Р¶Рµ РµСЃР»Рё 1000 Р±СѓРґРµС‚, СЃРѕСЂС‚РёСЂРѕРІРєР° Р±СѓРґРµС‚ СѓР»СЊС‚СЂР° Р±С‹СЃС‚СЂРѕР№, Рё РјРѕР¶РЅРѕ РІСЃРµ С‚РёРїС‹ РѕР±СЊРµРєС‚РѕРІ РІ РєСѓС‡Сѓ РїРёС…Р°С‚СЊ
 
-		void renderLightSource(LightSource* src); // Для каждого источника вызываем шейдер и рисуем одну строчку в lightmap
+		void renderLightSource(LightSource* src); // Р”Р»СЏ РєР°Р¶РґРѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РІС‹Р·С‹РІР°РµРј С€РµР№РґРµСЂ Рё СЂРёСЃСѓРµРј РѕРґРЅСѓ СЃС‚СЂРѕС‡РєСѓ РІ lightmap
 
-		void set_uniform(); // Отправить часть параметров (погодных, эффектов) в шейдер (ту часть, что можно обновлять не каждый кадр)
+		void set_uniform(); // РћС‚РїСЂР°РІРёС‚СЊ С‡Р°СЃС‚СЊ РїР°СЂР°РјРµС‚СЂРѕРІ (РїРѕРіРѕРґРЅС‹С…, СЌС„С„РµРєС‚РѕРІ) РІ С€РµР№РґРµСЂ (С‚Сѓ С‡Р°СЃС‚СЊ, С‡С‚Рѕ РјРѕР¶РЅРѕ РѕР±РЅРѕРІР»СЏС‚СЊ РЅРµ РєР°Р¶РґС‹Р№ РєР°РґСЂ)
 
 	public:
 		GraphicsEngine();

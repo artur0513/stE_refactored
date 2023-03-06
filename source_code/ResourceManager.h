@@ -1,11 +1,11 @@
-#pragma once
+п»ї#pragma once
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <filesystem>
 
-// Класс-менеджер для хранения текстур и шейдеров, стремится минимизировать попытки загрузки дубликатов текстур/шейдеров и просто для удобства
+// РљР»Р°СЃСЃ-РјРµРЅРµРґР¶РµСЂ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ С‚РµРєСЃС‚СѓСЂ Рё С€РµР№РґРµСЂРѕРІ, СЃС‚СЂРµРјРёС‚СЃСЏ РјРёРЅРёРјРёР·РёСЂРѕРІР°С‚СЊ РїРѕРїС‹С‚РєРё Р·Р°РіСЂСѓР·РєРё РґСѓР±Р»РёРєР°С‚РѕРІ С‚РµРєСЃС‚СѓСЂ/С€РµР№РґРµСЂРѕРІ Рё РїСЂРѕСЃС‚Рѕ РґР»СЏ СѓРґРѕР±СЃС‚РІР°
 template<class T>
 class Resource_manager {
 private:
@@ -17,7 +17,7 @@ private:
 	Resource_manager(Resource_manager&& r) {};
 	Resource_manager& operator=(const Resource_manager&& r) {};
 
-	bool load_object_from_file(T* obj, std::string filename) {}; // Нужно самостоятельно переопределять эту функцию загрузки под тип T
+	bool load_object_from_file(T* obj, std::string filename) {}; // РќСѓР¶РЅРѕ СЃР°РјРѕСЃС‚РѕСЏС‚РµР»СЊРЅРѕ РїРµСЂРµРѕРїСЂРµРґРµР»СЏС‚СЊ СЌС‚Сѓ С„СѓРЅРєС†РёСЋ Р·Р°РіСЂСѓР·РєРё РїРѕРґ С‚РёРї T
 public:
 	static Resource_manager* get_instance() {
 		static Resource_manager instance;
@@ -28,19 +28,19 @@ public:
 		std::ifstream file(filename.c_str());
 		if (file.is_open()) {
 			std::string object_filename;
-			while (getline(file, object_filename)) { // Загружаем название файла обьекта
-				if (object_filename.size() == 0) // Если размер строки 0
+			while (getline(file, object_filename)) { // Р—Р°РіСЂСѓР¶Р°РµРј РЅР°Р·РІР°РЅРёРµ С„Р°Р№Р»Р° РѕР±СЊРµРєС‚Р°
+				if (object_filename.size() == 0) // Р•СЃР»Рё СЂР°Р·РјРµСЂ СЃС‚СЂРѕРєРё 0
 					continue;
-				else if (object_filename[object_filename.find_first_not_of(" ")] == '#') // Или она начинается с символа для комментария
-					continue; // То переходим к следующей строке
+				else if (object_filename[object_filename.find_first_not_of(" ")] == '#') // РР»Рё РѕРЅР° РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃ СЃРёРјРІРѕР»Р° РґР»СЏ РєРѕРјРјРµРЅС‚Р°СЂРёСЏ
+					continue; // РўРѕ РїРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№ СЃС‚СЂРѕРєРµ
 
-				object_filename = std::filesystem::relative(object_filename).string(); // Приводм название файла к единому виду
-				T* new_object = new T; // Создаем указатель на обьект
+				object_filename = std::filesystem::relative(object_filename).string(); // РџСЂРёРІРѕРґРј РЅР°Р·РІР°РЅРёРµ С„Р°Р№Р»Р° Рє РµРґРёРЅРѕРјСѓ РІРёРґСѓ
+				T* new_object = new T; // РЎРѕР·РґР°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕР±СЊРµРєС‚
 
-				if (!load_object_from_file(new_object, object_filename)) // Пробуем грузить из файла
-					delete new_object; // Если не удалось, то удаляем и идем дальше
+				if (!load_object_from_file(new_object, object_filename)) // РџСЂРѕР±СѓРµРј РіСЂСѓР·РёС‚СЊ РёР· С„Р°Р№Р»Р°
+					delete new_object; // Р•СЃР»Рё РЅРµ СѓРґР°Р»РѕСЃСЊ, С‚Рѕ СѓРґР°Р»СЏРµРј Рё РёРґРµРј РґР°Р»СЊС€Рµ
 				else {
-					resources.insert(std::pair<std::string, T*>(object_filename, new_object)); // Иначе закидываем в карту и тоже идем дальше
+					resources.insert(std::pair<std::string, T*>(object_filename, new_object)); // РРЅР°С‡Рµ Р·Р°РєРёРґС‹РІР°РµРј РІ РєР°СЂС‚Сѓ Рё С‚РѕР¶Рµ РёРґРµРј РґР°Р»СЊС€Рµ
 				}
 			}
 		}
@@ -51,21 +51,21 @@ public:
 	}
 
 	T* get_object(std::string filename) {
-		filename = std::filesystem::relative(filename).string(); // Приводм название файла к единому виду
+		filename = std::filesystem::relative(filename).string(); // РџСЂРёРІРѕРґРј РЅР°Р·РІР°РЅРёРµ С„Р°Р№Р»Р° Рє РµРґРёРЅРѕРјСѓ РІРёРґСѓ
 		auto itrtr = resources.find(filename);
 
-		if (itrtr == resources.end()) { // Если нужного обьекта нету, то попробуем его найти, но вообще лучше сразу сначала грузить
-			T* new_object = new T; // Создаем указатель на обьект
+		if (itrtr == resources.end()) { // Р•СЃР»Рё РЅСѓР¶РЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РЅРµС‚Сѓ, С‚Рѕ РїРѕРїСЂРѕР±СѓРµРј РµРіРѕ РЅР°Р№С‚Рё, РЅРѕ РІРѕРѕР±С‰Рµ Р»СѓС‡С€Рµ СЃСЂР°Р·Сѓ СЃРЅР°С‡Р°Р»Р° РіСЂСѓР·РёС‚СЊ
+			T* new_object = new T; // РЎРѕР·РґР°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕР±СЊРµРєС‚
 
-			if (!load_object_from_file(new_object, filename)) { // Пробуем грузить из файла
+			if (!load_object_from_file(new_object, filename)) { // РџСЂРѕР±СѓРµРј РіСЂСѓР·РёС‚СЊ РёР· С„Р°Р№Р»Р°
 				return nullptr;
 			}
 			else {
-				resources.insert(std::pair<std::string, T*>(filename, new_object)); // Иначе закидываем в карту
-				return new_object; // И возвращаем указатель на новый обьект
+				resources.insert(std::pair<std::string, T*>(filename, new_object)); // РРЅР°С‡Рµ Р·Р°РєРёРґС‹РІР°РµРј РІ РєР°СЂС‚Сѓ
+				return new_object; // Р РІРѕР·РІСЂР°С‰Р°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РЅРѕРІС‹Р№ РѕР±СЊРµРєС‚
 			}
 		}
-		else // Если обьект все же нашли, то возвращаем на него указатель
+		else // Р•СЃР»Рё РѕР±СЊРµРєС‚ РІСЃРµ Р¶Рµ РЅР°С€Р»Рё, С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµРј РЅР° РЅРµРіРѕ СѓРєР°Р·Р°С‚РµР»СЊ
 			return itrtr->second;
 	}
 
