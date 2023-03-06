@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include "Basics.h"
-#include <fstream>
-#include <deque>
 #include "ResourceManager.h"
 
 namespace gr {
@@ -10,7 +8,7 @@ namespace gr {
 	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
 	class Rect {
 	public:
-		sf::Vector2d pos, size;
+		sf::Vector2d pos, size; // pos = левый верхний угол
 
 		Rect();
 
@@ -21,20 +19,29 @@ namespace gr {
 		bool intersects(const Rect& rect); // Проверка пересечения в другим прямоугольником 
 	};
 
+
 	class Camera : public Rect {
 	public:
 		double aspect_ratio;
-		sf::Vector2d center;
+		sf::Vector2f render_res;
 
-		sf::Vector2f world_to_camera_pos(sf::Vector2d gl_pos);
+		sf::Vector2f world_to_pixel_pos(sf::Vector2d world_pos);
 
-		sf::Vector2d camera_to_world_pos(sf::Vector2f c_pos);
+		sf::Vector2d pixel_to_world_pos(sf::Vector2f camera_pos);
 
-		sf::Vector2f world_to_glsl_pos(sf::Vector2d gl_pos);
+		sf::Vector2f world_to_glsl_pos(sf::Vector2d world_pos);
 	};
 
-	class Animation {
 
+	class Animation {
+	private:
+		std::deque<std::pair<sf::Sprite, sf::Time>> frames;
+		sf::Time full_anim_time = sf::milliseconds(0);
+
+	public:
+		void add_frame(sf::Sprite spr, sf::Time t);
+
+		sf::Sprite* get_frame(sf::Time time);
 	};
 
 	class Drawable : public Rect {

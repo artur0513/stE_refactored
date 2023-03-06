@@ -17,7 +17,7 @@ private:
 	Resource_manager(Resource_manager&& r) {};
 	Resource_manager& operator=(const Resource_manager&& r) {};
 
-	bool load_object_from_file(T* obj, std::string filename) {}; // Нужно самостоятельно переопределять эту функцию загрузки под тип T
+	bool load_object_from_file(T* obj, std::string filename); // Нужно самостоятельно переопределять эту функцию загрузки под тип T
 public:
 	static Resource_manager* get_instance() {
 		static Resource_manager instance;
@@ -70,10 +70,7 @@ public:
 	}
 
 	~Resource_manager() {
-		auto itrtr = resources.begin();
-		while (itrtr != resources.end()) {
-			delete itrtr->second;
-			itrtr++;
-		}
+		for (const auto& t : resources)
+			delete t.second;
 	}
 };

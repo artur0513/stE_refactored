@@ -1,10 +1,13 @@
 ﻿#include <iostream>
-#include <SFML/Graphics.hpp>
+#include "Graphics.h"
 
 int main()
 {
     std::cout << "Hello World!\n";
     sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), "STE");
+
+    auto mng = Resource_manager<sf::Texture>::get_instance();
+    mng->get_object("1.png");
 
     while (window.isOpen()) {
         sf::Event event;
