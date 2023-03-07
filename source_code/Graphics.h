@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "Basics.h"
 #include "ResourceManager.h"
+#include "Console.h"
 
 namespace gr {
 
@@ -16,7 +17,7 @@ namespace gr {
 
 		Rect(sf::Vector2d _pos, sf::Vector2d _size);
 
-		bool intersects(const Rect& rect); // Проверка пересечения в другим прямоугольником 
+		bool intersects(const Rect* rect) const; // Проверка пересечения в другим прямоугольником 
 	};
 
 
@@ -25,11 +26,13 @@ namespace gr {
 		double aspect_ratio;
 		sf::Vector2f render_res;
 
-		sf::Vector2f world_to_pixel_pos(sf::Vector2d world_pos);
+		sf::Vector2f world_to_pixel_pos(sf::Vector2d world_pos) const;
 
-		sf::Vector2d pixel_to_world_pos(sf::Vector2f camera_pos);
+		sf::Vector2f world_to_pixel_size(sf::Vector2d world_size) const;
 
-		sf::Vector2f world_to_glsl_pos(sf::Vector2d world_pos);
+		sf::Vector2d pixel_to_world_pos(sf::Vector2f camera_pos) const;
+
+		sf::Vector2f world_to_glsl_pos(sf::Vector2d world_pos) const;
 	};
 
 
@@ -45,21 +48,48 @@ namespace gr {
 	};
 
 	class Drawable : public Rect {
+	protected:
+		double layer = pos.y - size.y, layer_shift = 0;
+
 	public:
-		virtual void var_update(const Camera& cam);
+		virtual bool var_update(const Camera& cam) = 0;
 
-		virtual void animation_update();
+		virtual void animation_update() = 0;
 
-		virtual void load_from_file(std::ifstream& file);
+		virtual void load_from_file(std::ifstream& file) = 0;
 
-		virtual void draw(sf::RenderTarget* target);
+		virtual void draw(sf::RenderTarget* target) = 0;
 	};
 
-	class SpriteObject : public Drawable {
+	class SpriteObject final : public Drawable {
+	private:
+		Console* con = Console::get_instance();
 
+		sf::Sprite* current_sprite;
+		std::deque<Animation> anims; // Все анимации спрайта. Теперь нету default_sprite, он как-бы просто лежит в anims[0]
+
+		size_t current_anim = 0;
+		float anim_speed_factor = 1.0;
+
+		sf::Clock clock;
+		sf::Time anim_time;
+	public:
+		bool set_anim(size_t anim_num); // Пробуем врубить анимации под заданным номером. true если анимация существует
+
+		bool var_update(const Camera& cam) override final;
+
+		void animation_update() override final;
+
+		void draw(sf::RenderTarget* target) override final;
+
+		void load_from_file(std::ifstream& file) override final;
 	};
 
 	class Effect : public Drawable {
+
+	};
+
+	class Particle : public Drawable {
 
 	};
 
@@ -67,6 +97,7 @@ namespace gr {
 
 	};
 
+	// Разметка классов очень примерная пока
 	class GraphicsEngine {
 	private:
 		const sf::Color clear_color = sf::Color(0, 0, 0, 0);
@@ -84,7 +115,7 @@ namespace gr {
 
 		sf::RenderTexture rtexture1, rtexture2; // Теперь будет не много рендер-текстур, а 2, которые поочередно меняем друг с другом
 
-		void(*glTextureBarrier);
+		void(*glTextureBarrier); //краеугольный камень для карты высот
 
 		sf::RenderTexture lightmap, effectbuffer;
 		sf::Shader lightmapShader, combineShader, posteffectShader, heightShader;

@@ -1,14 +1,14 @@
-#pragma once
+п»ї#pragma once
 
 #include "Basics.h"
 #include <SFML/Graphics.hpp>
 
 enum class ConsoleMessageType {
-	DEF, // По умолчанию
-	INFO, // Просто информация
-	WARN, // Предупреждение
-	ERR, // Ошибка
-	SUCC, // Сообщение об успехе
+	DEF, // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+	INFO, // РџСЂРѕСЃС‚Рѕ РёРЅС„РѕСЂРјР°С†РёСЏ
+	WARN, // РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёРµ
+	ERR, // РћС€РёР±РєР°
+	SUCC, // РЎРѕРѕР±С‰РµРЅРёРµ РѕР± СѓСЃРїРµС…Рµ
 };
 
 class Console {
@@ -34,7 +34,7 @@ private:
 
 public:
 	sf::Font font;
-	std::deque<std::pair<std::string, ConsoleMessageType>> messages; // Массив со всеми сообщениями в консоли
+	std::deque<std::pair<std::string, ConsoleMessageType>> messages; // РњР°СЃСЃРёРІ СЃРѕ РІСЃРµРјРё СЃРѕРѕР±С‰РµРЅРёСЏРјРё РІ РєРѕРЅСЃРѕР»Рё
 	sf::Sprite sprite;
 
 	static Console* get_instance() {
@@ -42,7 +42,7 @@ public:
 		return &instance;
 	}
 
-	void log(std::string msg, ConsoleMessageType type = ConsoleMessageType::DEF); // Отправить сообщение в консоль
+	void log(std::string msg, ConsoleMessageType type = ConsoleMessageType::DEF); // РћС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РІ РєРѕРЅСЃРѕР»СЊ
 
 	void render();
 };

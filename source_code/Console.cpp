@@ -1,7 +1,7 @@
-#pragma once
+п»ї#pragma once
 #include "Console.h"
 
-sf::Color Console::type_to_color(ConsoleMessageType type) { // Тип ошибки превращает в цвет
+sf::Color Console::type_to_color(ConsoleMessageType type) { // РўРёРї РѕС€РёР±РєРё РїСЂРµРІСЂР°С‰Р°РµС‚ РІ С†РІРµС‚
 	switch (type) {
 	case ConsoleMessageType::DEF:
 		return sf::Color(255, 255, 255, 255);
@@ -15,7 +15,7 @@ sf::Color Console::type_to_color(ConsoleMessageType type) { // Тип ошибки превра
 		return sf::Color(0, 170, 0, 255);
 	}
 
-	return sf::Color(255, 255, 255, 255); // На всякий случай
+	return sf::Color(255, 255, 255, 255); // РќР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№
 }
 
 Console::Console(sf::Vector2u _size) {
@@ -33,12 +33,12 @@ Console::Console(sf::Vector2u _size) {
 	sprite.setTexture(console_texture.getTexture());
 
 
-	// Шрифт должен быть monospaced, ниже идет вычисление средней длины символа шрифта
+	// РЁСЂРёС„С‚ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ monospaced, РЅРёР¶Рµ РёРґРµС‚ РІС‹С‡РёСЃР»РµРЅРёРµ СЃСЂРµРґРЅРµР№ РґР»РёРЅС‹ СЃРёРјРІРѕР»Р° С€СЂРёС„С‚Р°
 	std::string test = "!#$ % &()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 	text.setString(test);
 	avg_symbol_size.x = offset_koeff.x * float(text.getGlobalBounds().width) / float(test.size());
 	avg_symbol_size.y = offset_koeff.y * float(text.getGlobalBounds().height);
-	max_symbols_in_line = size.x / avg_symbol_size.x;
+	max_symbols_in_line = float(size.x) / avg_symbol_size.x;
 
 	log("Welcome to stEngine console. Today is " + get_date_string() + ", hope you don't encounter any bugs :)");
 }
@@ -49,13 +49,12 @@ void Console::log(std::string msg, ConsoleMessageType type) {
 
 	msg = "[" + get_time_string() + "] " + msg;
 
-	// Если текст нового сообщения совпадает с предыдущим сообщением, то не будем их повторять
+	// Р•СЃР»Рё С‚РµРєСЃС‚ РЅРѕРІРѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ СЃРѕРІРїР°РґР°РµС‚ СЃ РїСЂРµРґС‹РґСѓС‰РёРј СЃРѕРѕР±С‰РµРЅРёРµРј, С‚Рѕ РЅРµ Р±СѓРґРµРј РёС… РїРѕРІС‚РѕСЂСЏС‚СЊ
 	if (messages.size() > 0)
 		if (msg == messages[messages.size() - 1].first)
 			return;
 
 	messages.push_back(std::pair<std::string, ConsoleMessageType>(msg, type));
-	render();
 }
 
 void Console::render() {
@@ -72,8 +71,8 @@ void Console::render() {
 
 			text.setString(messages[msg_counter].first.substr(i * max_symbols_in_line, max_symbols_in_line));
 			lines++;
-			sum_height = size.y - lines * avg_symbol_size.y;
-			text.setPosition(sf::Vector2f(0, sum_height));
+			sum_height = size.y - lines * int(avg_symbol_size.y);
+			text.setPosition(sf::Vector2f(0, float(sum_height)));
 			console_texture.draw(text);
 		}
 		msg_counter--;
