@@ -1,6 +1,36 @@
 #include "Graphics.h"
 #include <exception>
 
+// json load functions
+void gr::json_to_coord(sf::Vector2d& pos, sf::Vector2d& size, json& _json) {
+	try {
+		pos = sf::Vector2d(_json[0].get<double>(), _json[1].get<double>());
+		size = sf::Vector2d(_json[2].get<double>(), _json[3].get<double>());
+	} catch (nlohmann::detail::type_error err) {
+		throw err;
+	}
+}
+
+std::pair<sf::Sprite, sf::Time> gr::json_to_frame(json& _json){
+	sf::Sprite spr;
+	sf::IntRect rect;
+	float time = 0.f;
+	try {
+		rect.left = _json[0].get<double>();
+		rect.top = _json[1].get<double>();
+
+		rect.width = _json[2].get<double>();
+		rect.height = _json[3].get<double>();
+
+		time = _json[4].get<double>();
+	}
+	catch (nlohmann::detail::type_error err) {
+		throw err;
+	}
+	spr.setTextureRect(rect);
+	return std::pair<sf::Sprite, sf::Time>(spr, sf::milliseconds(time));
+}
+
 // Rect class
 
 gr::Rect::Rect() {
@@ -52,6 +82,12 @@ void gr::Animation::add_frame(sf::Sprite spr, sf::Time t) {
 	frames.push_back(std::pair<sf::Sprite, sf::Time>(spr, full_anim_time));
 }
 
+void gr::Animation::add_frame(std::pair<sf::Sprite, sf::Time> frame) {
+	full_anim_time += frame.second;
+	frame.second = full_anim_time;
+	frames.push_back(frame);
+}
+
 sf::Sprite* gr::Animation::get_frame(sf::Time time) {
 	if (frames.size() == 0)
 		throw std::logic_error("Animation size was 0 frames");
@@ -64,6 +100,12 @@ sf::Sprite* gr::Animation::get_frame(sf::Time time) {
 			return &frame.first;
 
 	return &frames[0].first;
+}
+
+// Drawable class
+
+double gr::Drawable::get_layer() {
+	return layer;
 }
 
 // SpriteObject class
@@ -93,9 +135,10 @@ bool gr::SpriteObject::set_anim(size_t anim_num) {
 
 void gr::SpriteObject::animation_update() {
 	anim_time += clock.getElapsedTime() * anim_speed_factor;
+	clock.restart();
 	
 	try {
-		current_sprite = anims[current_anim].get_frame(anim_time);
+		current_sprite = anims[current_anim].first.get_frame(anim_time);
 	} catch (std::logic_error& e) {
 		con->log(get_message_prefix(this) + " Animation error (currnet_anim =" + std::to_string(current_anim) + "):" + e.what(), ConsoleMessageType::ERR);
 	}
@@ -106,9 +149,8 @@ void gr::SpriteObject::draw(sf::RenderTarget* target) {
 	target->draw(*current_sprite);
 }
 
-void gr::SpriteObject::load_from_file(json _json) {
-	sf::Texture* texture;
-	std::string texture_name;
+void gr::SpriteObject::load_from_file(json& _json) {
+	std::string texture_name, sprite_type;
 	try {
 		texture_name = _json["texture"].get<std::string>();
 	} catch(nlohmann::detail::type_error err) {
@@ -116,10 +158,130 @@ void gr::SpriteObject::load_from_file(json _json) {
 		return;
 	}
 
+	try {
+		sprite_type = _json["sprite_type"].get<std::string>();
+		if (sprite_type == "diffuse")
+			type = SPRITE_TYPE::DIFFUSE;
+		else if (sprite_type == "height")
+			type = SPRITE_TYPE::HEIGHT;
+	}
+	catch (nlohmann::detail::type_error err) {
+		con->log(get_message_prefix(this) + " Json \"sprite_type\" parameter type != string, or it does not exist, set to diffuse as defalt", ConsoleMessageType::ERR);
+		type = SPRITE_TYPE::DIFFUSE;
+	}
+
 	texture = Resource_manager<sf::Texture>::get_instance()->get_object(texture_name);
 	if (texture == nullptr) {
 		con->log(get_message_prefix(this) + " Error loading texture from file " + _json["texture"].get<std::string>());
+		return;
 	}
 
+	try {
+		layer_shift = _json["layer_shift"].get<double>();
+	} catch (nlohmann::detail::type_error err) {
+		con->log(get_message_prefix(this) + " Json \"layer_shift\" parameter type != double, or it does not exist. It is automaticly set to 0.0", ConsoleMessageType::ERR);
+		layer_shift = 0.0;
+	}
 
+	try {
+		json_to_coord(pos, size, _json["coordinates"]);
+	} catch (nlohmann::detail::type_error err) {
+		con->log(get_message_prefix(this) + " Json \"coordiantes\" parameter type error. Should be 4 float numbers", ConsoleMessageType::ERR);
+		return;
+	}
+
+	for (auto& anim : _json["anims"].items()) {
+		Animation new_anim;
+		for (auto& frame : anim.value()) {
+			try {
+				auto spr = json_to_frame(frame);
+				spr.first.setTexture(*texture);
+				new_anim.add_frame(spr);
+			} catch (nlohmann::detail::type_error err) {
+				con->log(get_message_prefix(this) + " Json error while loading animations", ConsoleMessageType::ERR);
+				return;
+			}
+		}
+		anims.push_back(std::pair<Animation, std::string>(new_anim, anim.key()));
+	}
+	is_valid = true;
+	return;
+}
+
+void gr::SpriteObject::print_info() {
+	con->log(get_message_prefix(this) + " pos on screen: " + std::to_string(current_sprite->getPosition().x) + ", " + std::to_string(current_sprite->getPosition().y));
+}
+
+// Effect class
+
+// Particle class
+
+// LightSource class
+
+// GraphicsEngine class
+
+gr::GraphicsEngine::GraphicsEngine() {
+	rtexture1.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+	render_result.setTexture(rtexture1.getTexture());
+
+	cam.pos = sf::Vector2d(-8, 4.5);
+	cam.size = sf::Vector2d(16, 9);
+	cam.render_res = sf::Vector2f(1920, 1080);
+}
+
+void gr::GraphicsEngine::createRenderQueue() {
+	render_queue.clear();
+	for (auto obj : objects)
+		if (obj->var_update(cam))
+			render_queue.push_back(obj);
+}
+
+void gr::GraphicsEngine::sortRenderQueue() {
+	sort(render_queue.begin(), render_queue.end(),
+		[](Drawable* obj1, Drawable* obj2) {return (obj1->get_layer() > obj2->get_layer()); });
+}
+
+void gr::GraphicsEngine::render() {
+	rtexture1.clear(clear_color);
+
+	createRenderQueue();
+	sortRenderQueue();
+	
+	for (auto obj : render_queue)
+		obj->draw(&rtexture1);
+
+	rtexture1.display();
+}
+
+sf::Sprite& gr::GraphicsEngine::get_sprite() {
+	return render_result;
+}
+
+void gr::GraphicsEngine::load_from_file(json& _json) {
+	sf::Clock clock;
+
+	for (auto& json_obj : _json.items()) {
+		std::string type = json_obj.value()["type"].get<std::string>(); // maybe try catch ? 
+		if (type == "LightSource") {
+			
+		}
+		else if (type == "Particle") {
+
+		}
+		else if (type == "Effect") {
+
+		}
+		else if (type == "SpriteObject") {
+			Drawable* obj = new SpriteObject;
+			obj->load_from_file(json_obj.value());
+			objects.push_back(obj);
+		}
+	}
+
+	con->log("Graphics objects loading time in milliseconds (except parsing): " + std::to_string(clock.getElapsedTime().asMilliseconds()));
+}
+
+gr::GraphicsEngine::~GraphicsEngine() {
+	for (auto obj : objects)
+		delete obj;
 }

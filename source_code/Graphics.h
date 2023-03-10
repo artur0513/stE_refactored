@@ -8,6 +8,15 @@ using json = nlohmann::json;
 
 namespace gr {
 
+	void json_to_coord(sf::Vector2d& pos, sf::Vector2d& size, json & _json);
+
+	std::pair<sf::Sprite, sf::Time> json_to_frame(json& _json);
+
+	enum class SPRITE_TYPE : bool {
+		DIFFUSE,
+		HEIGHT
+	};
+
 	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
 	class Rect {
 	public:
@@ -46,21 +55,25 @@ namespace gr {
 	public:
 		void add_frame(sf::Sprite spr, sf::Time t);
 
+		void add_frame(std::pair<sf::Sprite, sf::Time> frame);
+
 		sf::Sprite* get_frame(sf::Time time);
 	};
 
 	class Drawable : public Rect {
 	protected:
-		double layer = pos.y - size.y, layer_shift = 0;
+		double layer = pos.y - size.y, layer_shift = 0.0;
 
 	public:
 		virtual bool var_update(const Camera& cam) = 0;
 
 		virtual void animation_update() = 0;
 
-		virtual void load_from_file(json _json) = 0;
+		virtual void load_from_file(json& _json) = 0;
 
 		virtual void draw(sf::RenderTarget* target) = 0;
+
+		double get_layer();
 	};
 
 	class SpriteObject final : public Drawable {
@@ -68,14 +81,20 @@ namespace gr {
 		Console* con = Console::get_instance();
 
 		sf::Sprite* current_sprite;
-		std::deque<Animation> anims; // Все анимации спрайта. Теперь нету default_sprite, он как-бы просто лежит в anims[0]
+		std::deque<std::pair<Animation, std::string>> anims; // Все анимации спрайта. Теперь нету default_sprite, он как-бы просто лежит в anims[0]
 
 		size_t current_anim = 0;
 		float anim_speed_factor = 1.0f;
 
 		sf::Clock clock;
 		sf::Time anim_time;
+
+		bool is_valid = false; // Корректно ли загружен обьект и загружен ли вообще, т.е. можно ли его использовать
+		sf::Texture* texture;
 	public:
+		std::string name;
+		SPRITE_TYPE type;
+
 		bool set_anim(size_t anim_num); // Пробуем врубить анимации под заданным номером. true если анимация существует
 
 		bool var_update(const Camera& cam) override final;
@@ -84,7 +103,9 @@ namespace gr {
 
 		void draw(sf::RenderTarget* target) override final;
 
-		void load_from_file(json _json) override final;
+		void load_from_file(json& _json) override final;
+
+		void print_info();
 	};
 
 	class Effect : public Drawable {
@@ -106,6 +127,10 @@ namespace gr {
 		const int MAX_LIGHT_COUNT = 32;
 		const int SHADER_UPD_FREQ = 20;
 
+		Console* con = Console::get_instance();
+
+		sf::Sprite render_result;
+
 		Camera cam;
 
 		std::deque<Drawable*> objects; // Все обьекты на карте
@@ -113,7 +138,7 @@ namespace gr {
 
 		sf::Vector2u render_res, output_res;
 
-		sf::Glsl::Mat3 color_correction; // !!! Вынести все постэффекты в отдельный класс !!!!
+		//sf::Glsl::Mat3 color_correction; // !!! Вынести все постэффекты в отдельный класс !!!!
 
 		sf::RenderTexture rtexture1, rtexture2; // Теперь будет не много рендер-текстур, а 2, которые поочередно меняем друг с другом
 
@@ -136,9 +161,9 @@ namespace gr {
 
 		void render();
 
-		void load_from_file(std::ifstream& file);
+		void load_from_file(json& _json);
 
-		void get_sprite();
+		sf::Sprite& get_sprite();
 
 		~GraphicsEngine();
 	};

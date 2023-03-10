@@ -11,6 +11,18 @@ namespace sf {
 	using Vector2d = sf::Vector2<double>;
 }
 
+template<class T>
+std::ostream& operator<< (std::ostream& out, sf::Vector2<T> vec) {
+	out << "(" << vec.x << ", " << vec.y << ")";
+	return out;
+}
+
+template<class T>
+std::ostream& operator<< (std::ostream& out, sf::Rect<T> rect) {
+	out << "[" << rect.left << ", " << rect.top << ", " << rect.width << ", " << rect.height << "]";
+	return out;
+}
+
 // Строка с текущей датой
 std::string get_date_string();
 

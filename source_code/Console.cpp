@@ -56,6 +56,7 @@ void Console::log(std::string msg, ConsoleMessageType type) {
 			return;
 
 	messages.push_back(std::pair<std::string, ConsoleMessageType>(msg, type));
+	std::cout << msg << std::endl;
 }
 
 void Console::render() {
@@ -81,15 +82,4 @@ void Console::render() {
 	console_texture.display();
 }
 
-Console::~Console() {
-	std::ofstream output("logs/gameconsole_output.txt");
-	for (auto& msg : messages) {
-		output << msg.first;
-		if (msg.second == ConsoleMessageType::WARN)
-			output << " (TYPE::WARN)";
-		else if (msg.second == ConsoleMessageType::ERR)
-			output << " (TYPE::ERR)";
-		output << std::endl;
-	}
-	output.close();
-}
+Console::~Console() {}
