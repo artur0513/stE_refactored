@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <SFML/System.hpp>
+#include <SFML/Graphics.hpp>
 #include <fstream>
 #include <deque>
 #include <iostream>

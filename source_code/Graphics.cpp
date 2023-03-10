@@ -97,11 +97,29 @@ void gr::SpriteObject::animation_update() {
 	try {
 		current_sprite = anims[current_anim].get_frame(anim_time);
 	} catch (std::logic_error& e) {
-		con->log(get_message_prefix(this) + " Animation error (currnet_anim =" + std::to_string(current_anim) + "):" + e.what());
+		con->log(get_message_prefix(this) + " Animation error (currnet_anim =" + std::to_string(current_anim) + "):" + e.what(), ConsoleMessageType::ERR);
 	}
 	return;
 }
 
 void gr::SpriteObject::draw(sf::RenderTarget* target) {
 	target->draw(*current_sprite);
+}
+
+void gr::SpriteObject::load_from_file(json _json) {
+	sf::Texture* texture;
+	std::string texture_name;
+	try {
+		texture_name = _json["texture"].get<std::string>();
+	} catch(nlohmann::detail::type_error err) {
+		con->log(get_message_prefix(this) + " Json \"texture\" parameter type != string, or it does not exist", ConsoleMessageType::ERR);
+		return;
+	}
+
+	texture = Resource_manager<sf::Texture>::get_instance()->get_object(texture_name);
+	if (texture == nullptr) {
+		con->log(get_message_prefix(this) + " Error loading texture from file " + _json["texture"].get<std::string>());
+	}
+
+
 }

@@ -1,8 +1,10 @@
 ﻿#pragma once
-#include <SFML/Graphics.hpp>
 #include "Basics.h"
 #include "ResourceManager.h"
 #include "Console.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 namespace gr {
 
@@ -56,7 +58,7 @@ namespace gr {
 
 		virtual void animation_update() = 0;
 
-		virtual void load_from_file(std::ifstream& file) = 0;
+		virtual void load_from_file(json _json) = 0;
 
 		virtual void draw(sf::RenderTarget* target) = 0;
 	};
@@ -69,7 +71,7 @@ namespace gr {
 		std::deque<Animation> anims; // Все анимации спрайта. Теперь нету default_sprite, он как-бы просто лежит в anims[0]
 
 		size_t current_anim = 0;
-		float anim_speed_factor = 1.0;
+		float anim_speed_factor = 1.0f;
 
 		sf::Clock clock;
 		sf::Time anim_time;
@@ -82,7 +84,7 @@ namespace gr {
 
 		void draw(sf::RenderTarget* target) override final;
 
-		void load_from_file(std::ifstream& file) override final;
+		void load_from_file(json _json) override final;
 	};
 
 	class Effect : public Drawable {

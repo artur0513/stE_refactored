@@ -2,13 +2,17 @@
 #include "Graphics.h"
 
 int main()
-{
+{   
+    std::filesystem::create_directory("logs");
+    FILE* stream;
+    freopen_s(&stream, "logs/std_output.txt", "w", stdout);
+    freopen_s(&stream, "logs/std_error.txt", "w", stderr);
+
     std::cout << "Hello World!\n";
     sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), "STE");
     Console *con = Console::get_instance();
 
     auto mng = Resource_manager<sf::Texture>::get_instance();
-    mng->get_object("1.png");
 
     con->log(get_message_prefix(mng));
     con->log(get_message_prefix(&window));

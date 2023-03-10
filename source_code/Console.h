@@ -29,8 +29,8 @@ private:
 
 	Console(sf::Vector2u _size = sf::Vector2u(1080, 600));
 	Console(const Console&);
-	Console& operator=(const Console&) {};
-	~Console() {};
+	Console& operator=(const Console&) = delete;
+	~Console();
 
 public:
 	sf::Font font;

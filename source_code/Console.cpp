@@ -41,6 +41,7 @@ Console::Console(sf::Vector2u _size) {
 	max_symbols_in_line = float(size.x) / avg_symbol_size.x;
 
 	log("Welcome to stEngine console. Today is " + get_date_string() + ", hope you don't encounter any bugs :)");
+	log("Some error will not be printed in this console, you can find them in logs\\ directory in your game folder");
 }
 
 void Console::log(std::string msg, ConsoleMessageType type) {
@@ -78,4 +79,17 @@ void Console::render() {
 		msg_counter--;
 	}
 	console_texture.display();
+}
+
+Console::~Console() {
+	std::ofstream output("logs/gameconsole_output.txt");
+	for (auto& msg : messages) {
+		output << msg.first;
+		if (msg.second == ConsoleMessageType::WARN)
+			output << " (TYPE::WARN)";
+		else if (msg.second == ConsoleMessageType::ERR)
+			output << " (TYPE::ERR)";
+		output << std::endl;
+	}
+	output.close();
 }
