@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include <exception>
+#include <typeinfo>
 
 // json load functions
 void gr::json_to_coord(sf::Vector2d& pos, sf::Vector2d& size, json& _json) {
@@ -11,7 +12,7 @@ void gr::json_to_coord(sf::Vector2d& pos, sf::Vector2d& size, json& _json) {
 	}
 }
 
-std::pair<sf::Sprite, sf::Time> gr::json_to_frame(json& _json){
+std::pair<sf::Sprite, sf::Time> gr::json_to_frame(json& _json) {
 	sf::Sprite spr;
 	sf::IntRect rect;
 	float time = 0.f;
@@ -121,6 +122,7 @@ bool gr::SpriteObject::var_update(const gr::Camera& cam) {
 	current_sprite->setScale(sf::Vector2f(new_pixel_size.x / current_sprite->getLocalBounds().width, new_pixel_size.y / current_sprite->getLocalBounds().height));
 
 	layer = pos.y - size.y + layer_shift;
+	return true;
 }
 
 bool gr::SpriteObject::set_anim(size_t anim_num) {
@@ -145,8 +147,11 @@ void gr::SpriteObject::animation_update() {
 	return;
 }
 
-void gr::SpriteObject::draw(sf::RenderTarget* target) {
-	target->draw(*current_sprite);
+void gr::SpriteObject::draw(RTextures& rtex) {
+	if (type == SPRITE_TYPE::DIFFUSE)
+		rtex.diffuse.draw(*current_sprite);
+	else if (type == SPRITE_TYPE::HEIGHT)
+		rtex.height.draw(*current_sprite);
 }
 
 void gr::SpriteObject::load_from_file(json& _json) {
@@ -221,8 +226,12 @@ void gr::SpriteObject::print_info() {
 // GraphicsEngine class
 
 gr::GraphicsEngine::GraphicsEngine() {
-	rtexture1.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
-	render_result.setTexture(rtexture1.getTexture());
+	rtex.diffuse.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+	rtex.height.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+	rtex.effectbuffer.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+	rtex.lightmap.create(sf::Vector2u(2048, 64)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+
+	render_result.setTexture(rtex.diffuse.getTexture());
 
 	cam.pos = sf::Vector2d(-8, 4.5);
 	cam.size = sf::Vector2d(16, 9);
@@ -242,15 +251,16 @@ void gr::GraphicsEngine::sortRenderQueue() {
 }
 
 void gr::GraphicsEngine::render() {
-	rtexture1.clear(clear_color);
+	rtex.diffuse.clear(clear_color);
 
 	createRenderQueue();
 	sortRenderQueue();
-	
-	for (auto obj : render_queue)
-		obj->draw(&rtexture1);
 
-	rtexture1.display();
+	for (auto obj : render_queue) {
+		obj->draw(rtex);
+	}
+
+	rtex.diffuse.display();
 }
 
 sf::Sprite& gr::GraphicsEngine::get_sprite() {
@@ -259,6 +269,7 @@ sf::Sprite& gr::GraphicsEngine::get_sprite() {
 
 void gr::GraphicsEngine::load_from_file(json& _json) {
 	sf::Clock clock;
+	con->log("Loading " + std::to_string(_json.size()) + " graphics objects...", ConsoleMessageType::INFO);
 
 	for (auto& json_obj : _json.items()) {
 		std::string type = json_obj.value()["type"].get<std::string>(); // maybe try catch ? 
@@ -274,11 +285,13 @@ void gr::GraphicsEngine::load_from_file(json& _json) {
 		else if (type == "SpriteObject") {
 			Drawable* obj = new SpriteObject;
 			obj->load_from_file(json_obj.value());
+			obj->name = json_obj.key();
 			objects.push_back(obj);
 		}
 	}
 
-	con->log("Graphics objects loading time in milliseconds (except parsing): " + std::to_string(clock.getElapsedTime().asMilliseconds()));
+	con->log("Graphics objects loading done! Time in milliseconds (except parsing): " + std::to_string(clock.getElapsedTime().asMilliseconds()), ConsoleMessageType::SUCC);
+	Resource_manager<sf::Texture>::get_instance()->print();
 }
 
 gr::GraphicsEngine::~GraphicsEngine() {

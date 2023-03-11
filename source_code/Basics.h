@@ -12,13 +12,19 @@ namespace sf {
 }
 
 template<class T>
-std::ostream& operator<< (std::ostream& out, sf::Vector2<T> vec) {
+std::ostream& operator<< (std::ostream& out, const sf::Vector2<T>& vec) {
 	out << "(" << vec.x << ", " << vec.y << ")";
 	return out;
 }
 
 template<class T>
-std::ostream& operator<< (std::ostream& out, sf::Rect<T> rect) {
+std::string to_string(const sf::Vector2<T>& vec) {
+	std::string ans = "(" + std::to_string(vec.x) + ", " + std::to_string(vec.y) + ")";
+	return ans;
+}
+
+template<class T>
+std::ostream& operator<< (std::ostream& out, const sf::Rect<T>& rect) {
 	out << "[" << rect.left << ", " << rect.top << ", " << rect.width << ", " << rect.height << "]";
 	return out;
 }

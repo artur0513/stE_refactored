@@ -4,12 +4,16 @@
 #include <fstream>
 #include <map>
 #include <filesystem>
+#include "Console.h"
+#include "Basics.h"
 
 // Класс-менеджер для хранения текстур и шейдеров, стремится минимизировать попытки загрузки дубликатов текстур/шейдеров и просто для удобства
 template<class T>
 class Resource_manager {
 private:
 	std::map<std::string, T*> resources;
+
+	Console* con = Console::get_instance();
 
 	Resource_manager() {};
 	Resource_manager(const Resource_manager& r) {};
@@ -67,6 +71,13 @@ public:
 		}
 		else // Если обьект все же нашли, то возвращаем на него указатель
 			return itrtr->second;
+	}
+
+	void print() {
+		con->log("All objects loaded in " + get_message_prefix(this), ConsoleMessageType::INFO);
+		for (auto& r : resources)
+			con->log(r.first, ConsoleMessageType::INFO);
+		con->log("End of Resource_manager info", ConsoleMessageType::INFO);
 	}
 
 	~Resource_manager() {

@@ -18,6 +18,9 @@ int main()
     gr::GraphicsEngine eng;
     eng.load_from_file(j);
 
+    sf::Clock clock;
+    int frame_counter = 0;
+
     while (window.isOpen()) {
         sf::Event event;
 
@@ -28,10 +31,16 @@ int main()
         }
 
         window.clear(sf::Color(100, 100, 100, 100));
-        con->render();
         eng.render();
         window.draw(eng.get_sprite());
         window.draw(con->sprite);
         window.display();
+
+        if (frame_counter % 1000 == 0) {
+            window.setTitle(std::to_string(1000.f/clock.getElapsedTime().asSeconds()));
+            frame_counter = 0;
+            clock.restart();
+        }
+        frame_counter++;
     }
 }

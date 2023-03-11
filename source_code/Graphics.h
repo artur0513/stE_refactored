@@ -17,6 +17,13 @@ namespace gr {
 		HEIGHT
 	};
 
+	struct RTextures {
+		sf::RenderTexture diffuse;
+		sf::RenderTexture height;
+		sf::RenderTexture effectbuffer;
+		sf::RenderTexture lightmap;
+	};
+
 	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
 	class Rect {
 	public:
@@ -65,13 +72,15 @@ namespace gr {
 		double layer = pos.y - size.y, layer_shift = 0.0;
 
 	public:
+		std::string name;
+
 		virtual bool var_update(const Camera& cam) = 0;
 
 		virtual void animation_update() = 0;
 
 		virtual void load_from_file(json& _json) = 0;
 
-		virtual void draw(sf::RenderTarget* target) = 0;
+		virtual void draw(RTextures& rtex) = 0;
 
 		double get_layer();
 	};
@@ -92,7 +101,6 @@ namespace gr {
 		bool is_valid = false; // Корректно ли загружен обьект и загружен ли вообще, т.е. можно ли его использовать
 		sf::Texture* texture;
 	public:
-		std::string name;
 		SPRITE_TYPE type;
 
 		bool set_anim(size_t anim_num); // Пробуем врубить анимации под заданным номером. true если анимация существует
@@ -101,7 +109,7 @@ namespace gr {
 
 		void animation_update() override final;
 
-		void draw(sf::RenderTarget* target) override final;
+		void draw(RTextures& rtex) override final;
 
 		void load_from_file(json& _json) override final;
 
@@ -127,7 +135,9 @@ namespace gr {
 		const int MAX_LIGHT_COUNT = 32;
 		const int SHADER_UPD_FREQ = 20;
 
+		RTextures rtex;
 		Console* con = Console::get_instance();
+		sf::Clock render_clock;
 
 		sf::Sprite render_result;
 
@@ -140,11 +150,8 @@ namespace gr {
 
 		//sf::Glsl::Mat3 color_correction; // !!! Вынести все постэффекты в отдельный класс !!!!
 
-		sf::RenderTexture rtexture1, rtexture2; // Теперь будет не много рендер-текстур, а 2, которые поочередно меняем друг с другом
-
 		void(*glTextureBarrier); //краеугольный камень для карты высот
 
-		sf::RenderTexture lightmap, effectbuffer;
 		sf::Shader lightmapShader, combineShader, posteffectShader, heightShader;
 
 		void createRenderQueue(); // Создать очередь отрисовки = найти все обьекты в кадре

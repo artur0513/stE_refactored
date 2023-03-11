@@ -57,6 +57,8 @@ void Console::log(std::string msg, ConsoleMessageType type) {
 
 	messages.push_back(std::pair<std::string, ConsoleMessageType>(msg, type));
 	std::cout << msg << std::endl;
+
+	render();
 }
 
 void Console::render() {
