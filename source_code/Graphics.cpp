@@ -1,4 +1,4 @@
-#include "Graphics.h"
+ï»¿#include "Graphics.h"
 #include <exception>
 #include <typeinfo>
 
@@ -213,23 +213,53 @@ void gr::SpriteObject::load_from_file(json& _json) {
 	return;
 }
 
-void gr::SpriteObject::print_info() {
-	con->log(get_message_prefix(this) + " pos on screen: " + std::to_string(current_sprite->getPosition().x) + ", " + std::to_string(current_sprite->getPosition().y));
-}
-
 // Effect class
 
 // Particle class
+
+// LightAnimation
+
+void gr::LightAnimation::add_frame(sf::Glsl::Vec3 color, sf::Time t) {
+	full_anim_time += t;
+	colors.push_back(std::pair<sf::Glsl::Vec3, sf::Time>(color, full_anim_time));
+}
+
+void gr::LightAnimation::add_frame(std::pair<sf::Glsl::Vec3, sf::Time> color_frame) {
+	full_anim_time += color_frame.second;
+	color_frame.second = full_anim_time;
+	colors.push_back(color_frame);
+}
+
+sf::Glsl::Vec3 gr::LightAnimation::get_color(sf::Time time) {
+	if (colors.size() == 0)
+		throw std::logic_error("Animation size was 0 frames");
+	if (full_anim_time == sf::milliseconds(0))
+		throw std::logic_error("Full animation time was 0");
+
+	std::pair<sf::Glsl::Vec3, sf::Time> prev_color((colors.end() - 1)->first, sf::milliseconds(0));
+	time %= full_anim_time;
+	for (auto& color : colors) {
+		if (time < color.second) {
+			if (!smooth)
+				return color.first;
+			else
+				return (color.first * (time - prev_color.second).asSeconds() + prev_color.first * (color.second - time).asSeconds()) / (color.second - prev_color.second).asSeconds();
+		}
+		prev_color = color;
+	}
+
+	return colors[0].first;
+}
 
 // LightSource class
 
 // GraphicsEngine class
 
 gr::GraphicsEngine::GraphicsEngine() {
-	rtex.diffuse.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
-	rtex.height.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
-	rtex.effectbuffer.create(sf::Vector2u(1920, 1080)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
-	rtex.lightmap.create(sf::Vector2u(2048, 64)); // ÏÎÒÎÌ ÏÎÌÅÍßÒÜ
+	rtex.diffuse.create(sf::Vector2u(1920, 1080)); // ÐŸÐžÐ¢ÐžÐœ ÐŸÐžÐœÐ•ÐÐ¯Ð¢Ð¬
+	rtex.height.create(sf::Vector2u(1920, 1080)); // ÐŸÐžÐ¢ÐžÐœ ÐŸÐžÐœÐ•ÐÐ¯Ð¢Ð¬
+	rtex.effectbuffer.create(sf::Vector2u(1920, 1080)); // ÐŸÐžÐ¢ÐžÐœ ÐŸÐžÐœÐ•ÐÐ¯Ð¢Ð¬
+	rtex.lightmap.create(sf::Vector2u(2048, 64)); // ÐŸÐžÐ¢ÐžÐœ ÐŸÐžÐœÐ•ÐÐ¯Ð¢Ð¬
 
 	render_result.setTexture(rtex.diffuse.getTexture());
 

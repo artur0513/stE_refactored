@@ -9,6 +9,7 @@ int main()
     freopen_s(&stream, "logs/std_error.txt", "w", stderr);
 
     sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), "STE");
+    window.setFramerateLimit(30);
     Console *con = Console::get_instance();
 
     auto mng = Resource_manager<sf::Texture>::get_instance();

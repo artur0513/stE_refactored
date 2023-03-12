@@ -22,6 +22,8 @@ namespace gr {
 		sf::RenderTexture height;
 		sf::RenderTexture effectbuffer;
 		sf::RenderTexture lightmap;
+
+		int light_counter = 0; // Счетчик уже отрендеренных источников света
 	};
 
 	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
@@ -52,7 +54,6 @@ namespace gr {
 
 		sf::Vector2f world_to_glsl_pos(sf::Vector2d world_pos) const;
 	};
-
 
 	class Animation {
 	private:
@@ -112,8 +113,6 @@ namespace gr {
 		void draw(RTextures& rtex) override final;
 
 		void load_from_file(json& _json) override final;
-
-		void print_info();
 	};
 
 	class Effect : public Drawable {
@@ -124,8 +123,36 @@ namespace gr {
 
 	};
 
-	class LightSource : public Drawable {
+	// Очень похоже на Animation, но решил не делать темплейт
+	class LightAnimation {
+	private:
+		std::deque<std::pair<sf::Glsl::Vec3, sf::Time>> colors;
+		sf::Time full_anim_time = sf::milliseconds(0);
 
+	public:
+		bool smooth = true; // Плавная анимация
+		float light_factor = 1.f;
+
+		void add_frame(sf::Glsl::Vec3 color, sf::Time t);
+
+		void add_frame(std::pair<sf::Glsl::Vec3, sf::Time> color_frame);
+
+		sf::Glsl::Vec3 get_color(sf::Time time);
+	};
+
+	class LightSource : public Drawable {
+		// Для единообразия здесь pos будет также левым верхним углом, в отличии от прошлой версии где координаты ист. света задавались через центр
+	private:
+		
+
+	public:
+		bool var_update(const Camera& cam) override final;
+
+		void animation_update() override final;
+
+		void draw(RTextures& rtex) override final;
+
+		void load_from_file(json& _json) override final;
 	};
 
 	// Разметка классов очень примерная пока
