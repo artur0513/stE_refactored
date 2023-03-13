@@ -24,6 +24,9 @@ namespace gr {
 		sf::RenderTexture lightmap;
 
 		int light_counter = 0; // Счетчик уже отрендеренных источников света
+
+		sf::Shader height_shader;
+		sf::Shader lightmap_shader;
 	};
 
 	// Класс похожий на sf::Rect<double>, но чуть более мне удобный
@@ -39,7 +42,6 @@ namespace gr {
 
 		bool intersects(const Rect* rect) const; // Проверка пересечения в другим прямоугольником 
 	};
-
 
 	class Camera : public Rect {
 	public:
@@ -88,8 +90,6 @@ namespace gr {
 
 	class SpriteObject final : public Drawable {
 	private:
-		Console* con = Console::get_instance();
-
 		sf::Sprite* current_sprite;
 		std::deque<std::pair<Animation, std::string>> anims; // Все анимации спрайта. Теперь нету default_sprite, он как-бы просто лежит в anims[0]
 
@@ -104,7 +104,7 @@ namespace gr {
 	public:
 		SPRITE_TYPE type;
 
-		bool set_anim(size_t anim_num); // Пробуем врубить анимации под заданным номером. true если анимация существует
+		bool set_anim(size_t anim_num, float speed_factor); // Пробуем врубить анимации под заданным номером. true если анимация существует
 
 		bool var_update(const Camera& cam) override final;
 
@@ -140,12 +140,21 @@ namespace gr {
 		sf::Glsl::Vec3 get_color(sf::Time time);
 	};
 
-	class LightSource : public Drawable {
-		// Для единообразия здесь pos будет также левым верхним углом, в отличии от прошлой версии где координаты ист. света задавались через центр
+	class LightSource : public Drawable {// Для единообразия здесь pos будет также левым верхним углом, в отличии от прошлой версии где координаты ист. света задавались через центр
 	private:
-		
+		sf::Glsl::Vec3 current_color;
+		std::deque<std::pair<LightAnimation, std::string>> anims;
 
+		sf::Glsl::Vec2 screen_pos, screen_size;
+
+		size_t current_anim = 0;
+		float anim_speed_factor = 1.0f;
+
+		sf::Clock clock;
+		sf::Time anim_time;
 	public:
+		bool set_anim(size_t anim_num, float speed_factor);
+
 		bool var_update(const Camera& cam) override final;
 
 		void animation_update() override final;
@@ -163,7 +172,6 @@ namespace gr {
 		const int SHADER_UPD_FREQ = 20;
 
 		RTextures rtex;
-		Console* con = Console::get_instance();
 		sf::Clock render_clock;
 
 		sf::Sprite render_result;

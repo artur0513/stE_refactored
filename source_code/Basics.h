@@ -38,9 +38,8 @@ std::string get_time_string();
 template <class T>
 std::string get_message_prefix(T* t) {
 	const void* address = static_cast<const void*>(t);
-	static std::stringstream ss;
+	std::stringstream ss;
 	ss << address;
 	std::string name = ss.str();
-	ss.flush();
 	return std::string(typeid(*t).name()) + " at " + name + ": ";
 }

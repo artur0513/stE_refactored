@@ -2,6 +2,8 @@
 #include <exception>
 #include <typeinfo>
 
+Console* con = Console::get_instance();
+
 // json load functions
 void gr::json_to_coord(sf::Vector2d& pos, sf::Vector2d& size, json& _json) {
 	try {
@@ -125,8 +127,9 @@ bool gr::SpriteObject::var_update(const gr::Camera& cam) {
 	return true;
 }
 
-bool gr::SpriteObject::set_anim(size_t anim_num) {
+bool gr::SpriteObject::set_anim(size_t anim_num, float speed_factor) {
 	if (anim_num < anims.size()) {
+		anim_speed_factor = speed_factor;
 		current_anim = anim_num;
 		clock.restart();
 		anim_time = sf::milliseconds(0);
@@ -151,7 +154,7 @@ void gr::SpriteObject::draw(RTextures& rtex) {
 	if (type == SPRITE_TYPE::DIFFUSE)
 		rtex.diffuse.draw(*current_sprite);
 	else if (type == SPRITE_TYPE::HEIGHT)
-		rtex.height.draw(*current_sprite);
+		rtex.height.draw(*current_sprite, &rtex.height_shader);
 }
 
 void gr::SpriteObject::load_from_file(json& _json) {
@@ -252,6 +255,48 @@ sf::Glsl::Vec3 gr::LightAnimation::get_color(sf::Time time) {
 }
 
 // LightSource class
+
+bool gr::LightSource::var_update(const Camera& cam) {
+	if (!cam.intersects(this))
+		return false;
+
+	animation_update();
+
+	screen_pos = cam.world_to_glsl_pos(pos);
+	screen_size = cam.world_to_pixel_size(size);
+
+	layer = pos.y - size.y + layer_shift;
+	return true;
+}
+
+void gr::LightSource::animation_update() {
+	anim_time += clock.getElapsedTime() * anim_speed_factor;
+	clock.restart();
+
+	try {
+		current_color = anims[current_anim].first.get_color(anim_time);
+	}
+	catch (std::logic_error& e) {
+		con->log(get_message_prefix(this) + " Animation error (currnet_anim =" + std::to_string(current_anim) + "):" + e.what(), ConsoleMessageType::ERR);
+	}
+	return;
+}
+
+
+bool gr::LightSource::set_anim(size_t anim_num, float speed_factor) {
+	if (anim_num < anims.size()) {
+		anim_speed_factor = speed_factor;
+		current_anim = anim_num;
+		clock.restart();
+		anim_time = sf::milliseconds(0);
+		return true;
+	}
+	return false;
+}
+
+void gr::LightSource::draw(RTextures& rtex) {
+
+}
 
 // GraphicsEngine class
 
